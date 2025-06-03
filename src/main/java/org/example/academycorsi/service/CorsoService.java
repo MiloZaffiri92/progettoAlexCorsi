@@ -30,21 +30,28 @@ public class CorsoService {
 
 
 
-    private final String urlDocenti = "http://localhost:8080/docenti";
+    private final String urlDocenti = "http://localhost:8080/docenti/{docenteId}";
     private final String urlDiscenti = "http://localhost:8080/discenti/corso/{corsoId}";
 
 
-
     private DocenteDTO getDocente(Long docenteId) {
+        if (docenteId == null) {
+            return new DocenteDTO("Non disponibile", "Non disponibile");
+        }
         try {
-            return restTemplate.getForObject(
+            ResponseEntity<DocenteDTO> response = restTemplate.getForEntity(
                     urlDocenti,
                     DocenteDTO.class,
                     docenteId
             );
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                DocenteDTO docente = response.getBody();
+                return new DocenteDTO(docente.getNome(), docente.getCognome());
+            }
         } catch (Exception e) {
-            return new DocenteDTO("Non disponibile", "Non disponibile");
+            System.out.println("Errore nel recupero del docente con ID " + docenteId + ": " + e.getMessage());
         }
+        return new DocenteDTO("Non disponibile", "Non disponibile");
     }
 
     private List<DiscenteDTO> getDiscenti(Long corsoId) {

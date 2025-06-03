@@ -3,8 +3,10 @@ package org.example.academycorsi.data.dto;
 
 public class DocenteDTO {
 
+
     private String nome;
     private String cognome;
+
 
 
     public String getNome() {
