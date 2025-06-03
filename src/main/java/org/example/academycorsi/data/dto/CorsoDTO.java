@@ -5,6 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
+//prova
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -12,4 +16,6 @@ import lombok.Setter;
 public class CorsoDTO {
     private String nome;
     private String annoAccademico;
+    private DocenteDTO docente;
+    private List<DiscenteDTO> discenti;
 }

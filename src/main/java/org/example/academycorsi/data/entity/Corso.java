@@ -17,8 +17,12 @@ public class Corso {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "nome")
     private String nome;
 
     @Column(name = "anno_accademico")
     private String annoAccademico;
+
+    @Column(name = "docente_id")
+    private Long docenteId;
 }
