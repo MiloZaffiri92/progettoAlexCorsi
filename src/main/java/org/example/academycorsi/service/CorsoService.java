@@ -9,9 +9,11 @@ import org.example.academycorsi.repository.CorsoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,27 +56,11 @@ public class CorsoService {
         return new DocenteDTO("Non disponibile", "Non disponibile");
     }
 
-    private List<DiscenteDTO> getDiscenti(Long corsoId) {
-        try {
-            ResponseEntity<List<DiscenteDTO>> response = restTemplate.exchange(
-                    urlDiscenti,
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<List<DiscenteDTO>>() {},
-                    corsoId
-            );
-            return response.getBody();
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
-    }
-
     public List<CorsoDTO> findAll() {
         return corsoRepository.findAll().stream()
                 .map(corso -> {
                     CorsoDTO dto = corsoMapper.corsoToDto(corso);
                     dto.setDocente(getDocente(corso.getDocenteId()));
-                    dto.setDiscenti(getDiscenti(corso.getId()));
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -83,15 +69,22 @@ public class CorsoService {
 
 
 
-    public CorsoDTO save(CorsoDTO corsoDTO){
-        Corso corso = corsoMapper.corsoToEntity(corsoDTO);
+    public CorsoDTO save(CorsoDTO corsoDTO) {
+        if (corsoDTO.getNome() == null || corsoDTO.getNome().trim().isEmpty()) {
+            throw new IllegalArgumentException("Il nome del corso è obbligatorio");
+        }
 
+        Corso corso = new Corso();
         corso.setNome(corsoDTO.getNome());
         corso.setAnnoAccademico(corsoDTO.getAnnoAccademico());
+        corso.setDocenteId(corsoDTO.getDocenteId());
 
         Corso savedCorso = corsoRepository.save(corso);
         return corsoMapper.corsoToDto(savedCorso);
     }
+
+
+
 
     public void deleteById(Long id) {
         corsoRepository.deleteById(id);
