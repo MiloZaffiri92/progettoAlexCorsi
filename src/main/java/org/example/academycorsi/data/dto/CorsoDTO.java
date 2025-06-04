@@ -12,4 +12,6 @@ import lombok.Setter;
 public class CorsoDTO {
     private String nome;
     private String annoAccademico;
+    private Long docenteId;
+    private DocenteDTO docente;
 }
