@@ -21,4 +21,7 @@ public class Corso {
 
     @Column(name = "anno_accademico")
     private String annoAccademico;
+
+    @Column(name = "docente_id")
+    private Long docenteId;
 }

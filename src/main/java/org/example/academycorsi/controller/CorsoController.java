@@ -21,15 +21,28 @@ public class CorsoController {
     }
 
     @PostMapping
-    public CorsoDTO salvaCorso(@RequestBody CorsoDTO corsoDTO) {
-        return corsoService.save(corsoDTO);
+    public ResponseEntity<?> salvaCorso(@RequestBody CorsoDTO corsoDTO) {
+        try {
+            CorsoDTO saved = corsoService.save(corsoDTO);
+            return ResponseEntity.ok(saved);
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
     }
 
+
     @PutMapping("/{id}")
-    public ResponseEntity<CorsoDTO> modificaCorso(@PathVariable Long id,
-                                                  @RequestBody CorsoDTO corso) {
-        CorsoDTO corsoDTO = corsoService.updateCorso(id, corso);
-        return ResponseEntity.ok(corsoDTO);
+    public ResponseEntity<?> modificaCorso(@PathVariable Long id, @RequestBody CorsoDTO corso) {
+        try {
+            CorsoDTO corsoAggiornato = corsoService.updateCorso(id, corso);
+            return ResponseEntity.ok(corsoAggiornato);
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
