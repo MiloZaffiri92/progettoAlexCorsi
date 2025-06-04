@@ -2,14 +2,19 @@ package org.example.academycorsi.service;
 import lombok.extern.slf4j.Slf4j;
 import org.example.academycorsi.converter.CorsoMapper;
 import org.example.academycorsi.data.dto.CorsoDTO;
+import org.example.academycorsi.data.dto.DiscenteDTO;
 import org.example.academycorsi.data.dto.DocenteDTO;
 import org.example.academycorsi.data.entity.Corso;
+import org.example.academycorsi.data.entity.CorsoDiscenti;
+import org.example.academycorsi.repository.CorsoDiscentiRepository;
 import org.example.academycorsi.repository.CorsoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -24,6 +29,12 @@ public class CorsoService {
 
     @Autowired
     private DocenteWebClientService docenteService;
+
+    @Autowired
+    private CorsoDiscentiRepository corsoDiscentiRepository;
+
+    @Autowired
+    private DiscenteWebClientService discenteService;
 
 
     private CorsoDTO moreInfoDocente(CorsoDTO dto) {
@@ -45,14 +56,46 @@ public class CorsoService {
         return dto;
     }
 
+    private CorsoDTO moreInfoDiscenti(CorsoDTO dto) {
+        try {
+            List<CorsoDiscenti> corsoDiscenti = corsoDiscentiRepository.findByCorsoId(dto.getId());
+            log.info("Trovati {} discenti per il corso {}", corsoDiscenti.size(), dto.getId());
+
+            Set<Long> discentiIds = new HashSet<>();
+            Set<DiscenteDTO> discentiInfo = new HashSet<>();
+
+            for (CorsoDiscenti cd : corsoDiscenti) {
+                discentiIds.add(cd.getDiscenteId());
+                log.info("Recupero informazioni per il discente ID: {}", cd.getDiscenteId());
+                try {
+                    DiscenteDTO discente = discenteService.getDiscenteById(cd.getDiscenteId());
+                    if (discente != null) {
+                        discentiInfo.add(discente);
+                        log.info("Aggiunto discente: {}", discente);
+                    } else {
+                        log.warn("Nessun discente trovato per ID: {}", cd.getDiscenteId());
+                    }
+                } catch (Exception e) {
+                    log.error("Errore nel recupero del discente con ID: {}", cd.getDiscenteId(), e);
+                }
+            }
+            dto.setDiscenti(discentiInfo);
+        } catch (Exception e) {
+            log.error("Errore nel recupero dei discenti per il corso: {}", dto.getId(), e);
+        }
+        return dto;
+    }
+
     public List<CorsoDTO> findAll() {
         return corsoRepository.findAll().stream()
                 .map(corso -> {
                     CorsoDTO dto = corsoMapper.corsoToDto(corso);
-                    return moreInfoDocente(dto);
+                    dto = moreInfoDocente(dto);
+                    return moreInfoDiscenti(dto);
                 })
                 .collect(Collectors.toList());
     }
+
 
 
 

@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/scuola
+    url: jdbc:postgresql://localhost:5433/corsiDB
     username: postgres
     password: Argolone92!
     driver-class-name: org.postgresql.Driver
@@ -20,6 +20,10 @@ spring:
 server:
   port: 8081
 
+discenti:
+  service:
+    url: http://localhost:8080
 docenti:
   service:
     url: http://localhost:8080
+

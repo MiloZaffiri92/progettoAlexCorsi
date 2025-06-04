@@ -2,7 +2,6 @@ package org.example.academycorsi.controller;
 
 import org.example.academycorsi.data.dto.CorsoDTO;
 import org.example.academycorsi.service.CorsoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,8 +11,13 @@ import java.util.List;
 @RequestMapping("/corsi")
 public class CorsoController {
 
-    @Autowired
-    private CorsoService corsoService;
+
+    private final CorsoService corsoService;
+
+    public CorsoController(CorsoService corsoService) {
+        this.corsoService = corsoService;
+    }
+
 
     @GetMapping("/list")
     public List<CorsoDTO> list() {
