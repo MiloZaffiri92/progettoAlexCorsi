@@ -4,14 +4,14 @@ public class DiscenteDTO {
 
     private String nome;
     private String cognome;
-    private Integer matricola;
+    private Long matricola;
     private String cittaResidenza;
 
-    public Integer getMatricola() {
+    public Long getMatricola() {
         return matricola;
     }
 
-    public void setMatricola(Integer matricola) {
+    public void setMatricola(Long matricola) {
         this.matricola = matricola;
     }
 
@@ -39,7 +39,7 @@ public class DiscenteDTO {
         this.cognome = cognome;
     }
 
-    public DiscenteDTO(String nome, String cognome, Integer matricola, String cittaResidenza) {
+    public DiscenteDTO(String nome, String cognome, Long matricola, String cittaResidenza) {
         this.nome = nome;
         this.cognome = cognome;
         this.matricola = matricola;
