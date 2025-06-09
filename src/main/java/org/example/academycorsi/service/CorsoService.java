@@ -151,19 +151,40 @@ public class CorsoService {
     }
 
 
+    @Transactional
     public CorsoDTO updateCorso(Long id, CorsoDTO corsoDTO) {
+        // Recupera il corso esistente
         Corso corsoEsistente = corsoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Corso non trovato con ID: " + id));
 
         // Aggiorna i campi base solo se sono presenti nel DTO
-        if (corsoDTO.getNome() != null) {
-            corsoEsistente.setNome(corsoDTO.getNome());
-        }
-        if (corsoDTO.getAnnoAccademico() != null) {
-            corsoEsistente.setAnnoAccademico(corsoDTO.getAnnoAccademico());
+        updateBasicFields(corsoEsistente, corsoDTO);
+
+        // Gestione del docente
+        handleDocenteUpdate(corsoEsistente, corsoDTO);
+
+        // Salva il corso aggiornato
+        Corso savedCorso = corsoRepository.save(corsoEsistente);
+
+        // Gestione dei discenti se presenti nel DTO
+        if (corsoDTO.getDiscenti() != null && !corsoDTO.getDiscenti().isEmpty()) {
+            updateDiscenti(id, corsoDTO);
         }
 
-        // Gestione del docenteId
+        // Prepara il DTO di risposta con tutte le informazioni
+        return prepareResponseDTO(savedCorso, corsoDTO);
+    }
+
+    private void updateBasicFields(Corso corso, CorsoDTO corsoDTO) {
+        if (corsoDTO.getNome() != null) {
+            corso.setNome(corsoDTO.getNome());
+        }
+        if (corsoDTO.getAnnoAccademico() != null) {
+            corso.setAnnoAccademico(corsoDTO.getAnnoAccademico());
+        }
+    }
+
+    private void handleDocenteUpdate(Corso corso, CorsoDTO corsoDTO) {
         if (corsoDTO.getDocenteId() != null) {
             try {
                 DocenteDTO docente = docenteWebClientService.getDocenteById(corsoDTO.getDocenteId())
@@ -174,22 +195,56 @@ public class CorsoService {
                     throw new RuntimeException("Il docente con ID " + corsoDTO.getDocenteId() + " non esiste");
                 }
 
-                corsoEsistente.setDocenteId(corsoDTO.getDocenteId());
+                corso.setDocenteId(corsoDTO.getDocenteId());
                 corsoDTO.setDocente(docente);
             } catch (Exception e) {
                 throw new RuntimeException("Errore nella verifica del docente: " + e.getMessage());
             }
         }
+    }
 
-        Corso savedCorso = corsoRepository.save(corsoEsistente);
-        CorsoDTO savedDto = corsoMapper.corsoToDto(savedCorso);
+    private void updateDiscenti(Long corsoId, CorsoDTO corsoDTO) {
+        try {
+            // Rimuove le associazioni esistenti
+            corsoDiscentiRepository.deleteByCorsoId(corsoId);
 
-        // Aggiungiamo le informazioni del docente al DTO restituito
-        if (corsoDTO.getDocente() != null) {
-            savedDto.setDocente(corsoDTO.getDocente());
+            // Crea nuove associazioni per ogni discente
+            corsoDTO.getDiscenti().forEach(discenteDTO -> {
+                try {
+                    Long discenteId = discenteWebClientService.getDiscenteIdByNomeAndCognome(
+                            discenteDTO.getNome(),
+                            discenteDTO.getCognome()
+                    );
+
+                    if (discenteId != null) {
+                        CorsoDiscenti corsoDiscenti = new CorsoDiscenti();
+                        corsoDiscenti.setCorsoId(corsoId);
+                        corsoDiscenti.setDiscenteId(discenteId);
+                        corsoDiscentiRepository.save(corsoDiscenti);
+                    } else {
+                        log.warn("Discente non trovato: {} {}", discenteDTO.getNome(), discenteDTO.getCognome());
+                    }
+                } catch (Exception e) {
+                    log.error("Errore nell'aggiornamento del discente: {} {}",
+                            discenteDTO.getNome(), discenteDTO.getCognome(), e);
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Errore nell'aggiornamento dei discenti: " + e.getMessage());
+        }
+    }
+
+    private CorsoDTO prepareResponseDTO(Corso savedCorso, CorsoDTO originalDTO) {
+        CorsoDTO responseDTO = corsoMapper.corsoToDto(savedCorso);
+
+        // Aggiungi informazioni del docente se presente
+        if (originalDTO.getDocente() != null) {
+            responseDTO.setDocente(originalDTO.getDocente());
         }
 
-        return savedDto;
+        // Aggiungi informazioni dei discenti aggiornate
+        return moreInfoDiscenti(responseDTO);
     }
+
 
 }
