@@ -98,6 +98,39 @@ public class CorsoService {
 
     @Transactional
     public CorsoDTO save(CorsoDTO corsoDTO) {
+        // Verifica e gestione del docente
+        if (corsoDTO.getDocente() != null) {
+            try {
+                // Verifica se il docente esiste
+                Long docenteId = docenteWebClientService.getDocenteIdByNomeAndCognome(
+                        corsoDTO.getDocente().getNome(),
+                        corsoDTO.getDocente().getCognome()
+                );
+
+                // Se il docente non esiste, lo creiamo
+                if (docenteId == null) {
+                    log.info("Docente non trovato, procedo con la creazione: {} {}",
+                            corsoDTO.getDocente().getNome(),
+                            corsoDTO.getDocente().getCognome());
+
+                    docenteId = docenteWebClientService.createDocente(corsoDTO.getDocente());
+
+                    if (docenteId == null) {
+                        throw new RuntimeException("Errore: impossibile creare il nuovo docente");
+                    }
+                    log.info("Nuovo docente creato con ID: {}", docenteId);
+                }
+
+                // Impostiamo l'ID del docente nel DTO del corso
+                corsoDTO.setDocenteId(docenteId);
+
+            } catch (Exception e) {
+                log.error("Errore nella gestione del docente: {}", e.getMessage());
+                throw new RuntimeException("Errore nella gestione del docente: " + e.getMessage());
+            }
+        }
+
+
         Corso corso = corsoMapper.corsoToEntity(corsoDTO);
         corso.setDocenteId(corsoDTO.getDocenteId());
         Corso savedCorso = corsoRepository.save(corso);
@@ -126,17 +159,33 @@ public class CorsoService {
                         discenteDTO.getCognome()
                 );
 
-                if (discenteId != null) {
-                    CorsoDiscenti corsoDiscenti = new CorsoDiscenti();
-                    corsoDiscenti.setCorsoId(idCorso);
-                    corsoDiscenti.setDiscenteId(discenteId);
-                    corsoDiscentiRepository.save(corsoDiscenti);
-                    log.info("Salvata associazione corso-discente: Corso ID {}, Discente ID {}",
-                            idCorso, discenteId);
-                } else {
-                    log.warn("Discente non trovato con nome: {} e cognome: {}",
+                // Se il discente non esiste, lo creiamo
+                if (discenteId == null) {
+                    log.info("Discente non trovato, procedo con la creazione: {} {}",
                             discenteDTO.getNome(), discenteDTO.getCognome());
+
+                    DiscenteDTO nuovoDiscente = discenteWebClientService.createDiscente(discenteDTO);
+                    // Dopo la creazione, otteniamo l'ID cercando nuovamente il discente
+                    discenteId = discenteWebClientService.getDiscenteIdByNomeAndCognome(
+                            nuovoDiscente.getNome(),
+                            nuovoDiscente.getCognome()
+                    );
+
+                    if (discenteId == null) {
+                        throw new RuntimeException("Errore: impossibile ottenere l'ID del discente appena creato");
+                    }
+                    log.info("Nuovo discente creato con ID: {}", discenteId);
                 }
+
+                // A questo punto abbiamo sicuramente un ID valido
+                CorsoDiscenti corsoDiscenti = new CorsoDiscenti();
+                corsoDiscenti.setCorsoId(idCorso);
+                corsoDiscenti.setDiscenteId(discenteId);
+                corsoDiscentiRepository.save(corsoDiscenti);
+                log.info("Salvata associazione corso-discente: Corso ID {}, Discente ID {}",
+                        idCorso, discenteId);
+
+
             } catch (Exception e) {
                 log.error("Errore nel salvare l'associazione corso-discente per discente {}: {}",
                         discenteDTO.getNome() + " " + discenteDTO.getCognome(), e.getMessage());

@@ -3,6 +3,7 @@ package org.example.academycorsi.service;
 import lombok.extern.slf4j.Slf4j;
 import org.example.academycorsi.data.dto.DiscenteDTO;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -42,4 +43,15 @@ public class DiscenteWebClientService {
                     .bodyToMono(DiscenteDTO.class)
                     .block();
         }
+
+    public DiscenteDTO createDiscente(DiscenteDTO discenteDTO) {
+        return webClient.post()
+                .uri("/discenti")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(discenteDTO)
+                .retrieve()
+                .bodyToMono(DiscenteDTO.class)
+                .block();
+    }
+
 }
