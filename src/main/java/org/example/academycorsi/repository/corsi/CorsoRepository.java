@@ -1,4 +1,4 @@
-package org.example.academycorsi.repository;
+package org.example.academycorsi.repository.corsi;
 
 import org.example.academycorsi.data.entity.Corso;
 import org.springframework.data.jpa.repository.JpaRepository;

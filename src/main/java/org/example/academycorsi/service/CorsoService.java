@@ -8,9 +8,8 @@ import org.example.academycorsi.data.dto.DiscenteDTO;
 import org.example.academycorsi.data.dto.DocenteDTO;
 import org.example.academycorsi.data.entity.Corso;
 import org.example.academycorsi.data.entity.CorsoDiscenti;
-import org.example.academycorsi.repository.CorsoDiscentiRepository;
-import org.example.academycorsi.repository.CorsoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.example.academycorsi.repository.corsi.CorsoDiscentiRepository;
+import org.example.academycorsi.repository.corsi.CorsoRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;

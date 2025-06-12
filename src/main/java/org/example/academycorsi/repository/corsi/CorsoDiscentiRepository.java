@@ -1,6 +1,5 @@
-package org.example.academycorsi.repository;
+package org.example.academycorsi.repository.corsi;
 
-import org.example.academycorsi.data.dto.DiscenteDTO;
 import org.example.academycorsi.data.entity.CorsoDiscenti;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
